@@ -1,11 +1,10 @@
-name: Build edge
+name: Build and publish
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
 
 jobs:
   build-publish:
@@ -19,12 +18,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Unshallow
-        run: git fetch --prune --unshallow
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
+
       - name: Set up docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -39,6 +38,5 @@ jobs:
         timeout-minutes: 10
         run: make images
         env:
-          USERNAME: ${{ github.repository_owner }}
           PUSH: "true"
-          TAG: "edge"
+          TAG: "latest"
