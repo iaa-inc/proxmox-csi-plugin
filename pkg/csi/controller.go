@@ -30,8 +30,9 @@ import (
 	"google.golang.org/grpc/status"
 
 	proxmox "github.com/sergelogvinov/proxmox-cloud-controller-manager/pkg/cluster"
+
 	"github.com/sergelogvinov/proxmox-csi-plugin/pkg/tools"
-	volume "github.com/sergelogvinov/proxmox-csi-plugin/pkg/volume"
+	"github.com/sergelogvinov/proxmox-csi-plugin/pkg/volume"
 
 	corev1 "k8s.io/api/core/v1"
 	clientkubernetes "k8s.io/client-go/kubernetes"
@@ -373,9 +374,12 @@ func (d *ControllerService) ControllerPublishVolume(ctx context.Context, request
 		options["discard"] = "on"
 	}
 
-	if volCtx[StorageCacheKey] != "" {
-		options["cache"] = volCtx[StorageCacheKey]
-	}
+	// Can't change k8s storage class parameters after change, so let's force
+	// the cache to writeback during volume attachment.
+	// if volCtx[StorageCacheKey] != "" {
+	// 	options["cache"] = volCtx[StorageCacheKey]
+	//}
+	options["cache"] = "writeback"
 
 	if volCtx[StorageDiskIOPSKey] != "" {
 		iops, err := strconv.Atoi(volCtx[StorageDiskIOPSKey]) //nolint:govet

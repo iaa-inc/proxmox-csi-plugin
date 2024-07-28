@@ -1,5 +1,5 @@
 REGISTRY ?= ghcr.io
-USERNAME ?= sergelogvinov
+USERNAME ?= iaa-inc
 OCIREPO ?= $(REGISTRY)/$(USERNAME)
 HELMREPO ?= $(REGISTRY)/$(USERNAME)/charts
 PLATFORM ?= linux/arm64,linux/amd64
@@ -19,8 +19,6 @@ BUILD_ARGS += --push=$(PUSH) --output type=image,annotation-index.org.opencontai
 else
 BUILD_ARGS += --output type=docker
 endif
-
-COSING_ARGS ?=
 
 ############
 
@@ -75,53 +73,6 @@ run: build-controller ## Run
 lint: ## Lint Code
 	golangci-lint run --config .golangci.yml
 
-.PHONY: unit
-unit: ## Unit Tests
-	go test -tags=unit $(shell go list ./...) $(TESTARGS)
-
-.PHONY: conformance
-conformance: ## Conformance
-	docker run --rm -it -v $(PWD):/src -w /src ghcr.io/siderolabs/conform:v0.1.0-alpha.27 enforce
-
-############
-
-.PHONY: helm-unit
-helm-unit: ## Helm Unit Tests
-	@helm lint charts/proxmox-csi-plugin
-	@helm template -f charts/proxmox-csi-plugin/ci/values.yaml proxmox-csi-plugin charts/proxmox-csi-plugin >/dev/null
-
-.PHONY: helm-login
-helm-login: ## Helm Login
-	@echo "${HELM_TOKEN}" | helm registry login $(REGISTRY) --username $(USERNAME) --password-stdin
-
-.PHONY: helm-release
-helm-release: ## Helm Release
-	@rm -rf dist/
-	@helm package charts/proxmox-csi-plugin -d dist
-	@helm push dist/proxmox-csi-plugin-*.tgz oci://$(HELMREPO) 2>&1 | tee dist/.digest
-	@cosign sign --yes $(COSING_ARGS) $(HELMREPO)/proxmox-csi-plugin@$$(cat dist/.digest | awk -F "[, ]+" '/Digest/{print $$NF}')
-
-############
-
-.PHONY: docs
-docs:
-	yq -i '.appVersion = "$(TAG)"' charts/proxmox-csi-plugin/Chart.yaml
-	helm template -n csi-proxmox proxmox-csi-plugin \
-		-f charts/proxmox-csi-plugin/values.edge.yaml \
-		charts/proxmox-csi-plugin > docs/deploy/proxmox-csi-plugin.yml
-	helm template -n csi-proxmox proxmox-csi-plugin \
-		--set-string image.tag=$(TAG) \
-		--set createNamespace=true \
-		charts/proxmox-csi-plugin > docs/deploy/proxmox-csi-plugin-release.yml
-	helm template -n csi-proxmox proxmox-csi-plugin \
-		-f charts/proxmox-csi-plugin/values.talos.yaml \
-		--set-string image.tag=$(TAG) \
-		charts/proxmox-csi-plugin > docs/deploy/proxmox-csi-plugin-talos.yml
-	helm-docs --sort-values-order=file charts/proxmox-csi-plugin
-
-release-update:
-	git-chglog --config hack/chglog-config.yml -o CHANGELOG.md
-
 ############
 #
 # Docker Abstractions
@@ -149,12 +100,6 @@ images-checks: images image-tools-check
 	trivy image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL --no-progress $(OCIREPO)/proxmox-csi-controller:$(TAG)
 	trivy image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL --no-progress $(OCIREPO)/proxmox-csi-node:$(TAG)
 	trivy image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL --no-progress $(OCIREPO)/pvecsictl:$(TAG)
-
-.PHONY: images-cosign
-images-cosign:
-	@cosign sign --yes $(COSING_ARGS) --recursive $(OCIREPO)/proxmox-csi-controller:$(TAG)
-	@cosign sign --yes $(COSING_ARGS) --recursive $(OCIREPO)/proxmox-csi-node:$(TAG)
-	@cosign sign --yes $(COSING_ARGS) --recursive $(OCIREPO)/pvecsictl:$(TAG)
 
 .PHONY: images
 images: image-proxmox-csi-controller image-proxmox-csi-node image-pvecsictl ## Build images
