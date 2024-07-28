@@ -4,12 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'go.mod'
-      - 'go.sum'
-      - 'cmd/**'
-      - 'pkg/**'
-      - 'Dockerfile'
+
 
 jobs:
   build-publish:
