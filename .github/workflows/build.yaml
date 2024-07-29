@@ -61,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          dockerfile: controller.Dockerfile
+          file: controller.Dockerfile
           push: true
           tags: ${{ steps.meta-controller.outputs.tags }}
           labels: ${{ steps.meta-controller.outputs.labels }}
@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          dockerfile: node.Dockerfile
+          file: node.Dockerfile
           push: true
           tags: ${{ steps.meta-node.outputs.tags }}
           labels: ${{ steps.meta-node.outputs.labels }}
