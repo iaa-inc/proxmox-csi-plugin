@@ -50,10 +50,6 @@ jobs:
         run: |
           go build -o bin/proxmox-csi-controller ./cmd/controller && \
           go build -o bin/proxmox-csi-node ./cmd/node
-          
-          ls -lah
-          ls -lah bin
-
         env:
           CGO_ENABLED: "0"
 
@@ -61,8 +57,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: controller.Dockerfile
           push: true
+          target: proxmox-csi-controller
           tags: ${{ steps.meta-controller.outputs.tags }}
           labels: ${{ steps.meta-controller.outputs.labels }}
 
@@ -70,7 +66,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: node.Dockerfile
           push: true
+          target: proxmox-csi-node
           tags: ${{ steps.meta-node.outputs.tags }}
           labels: ${{ steps.meta-node.outputs.labels }}

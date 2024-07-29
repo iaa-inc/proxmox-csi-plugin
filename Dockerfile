@@ -13,11 +13,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY tools /tools
 RUN /tools/deps.sh
 
-FROM scratch
+FROM scratch AS proxmox-csi-controller
 
-COPY ./bin/proxmox-csi-node /bin/proxmox-csi-node
+COPY --from=gcr.io/distroless/static-debian12:nonroot . .
+COPY ./bin/proxmox-csi-controller /proxmox-csi-controller
+
+ENTRYPOINT ["/proxmox-csi-controller"]
+
+FROM scratch AS proxmox-csi-node
 
 COPY --from=gcr.io/distroless/base-debian12 . .
 COPY --from=tools /dest /
+COPY ./bin/proxmox-csi-node /proxmox-csi-node
 
-ENTRYPOINT ["/bin/proxmox-csi-node"]
+ENTRYPOINT ["/proxmorx-csi-node"]
