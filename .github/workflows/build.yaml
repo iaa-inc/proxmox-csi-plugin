@@ -54,8 +54,8 @@ jobs:
           upx --best --lzma bin/proxmox-csi-controller
           upx --best --lzma bin/proxmox-csi-node
           
-          mv bin/proxmox-csi-controller.upx bin/proxmox-csi-controller
-          mv bin/proxmox-csi-node.upx bin/proxmox-csi-node
+          ls -lah
+          ls -lah bin
 
         env:
           CGO_ENABLED: "0"
