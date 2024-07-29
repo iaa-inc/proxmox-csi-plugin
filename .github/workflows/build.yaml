@@ -50,6 +50,10 @@ jobs:
         run: |
           go build -o bin/proxmox-csi-controller ./cmd/controller && \
           go build -o bin/proxmox-csi-node ./cmd/node
+          
+          ls -lah
+          ls -lah bin
+
         env:
           CGO_ENABLED: "0"
 
