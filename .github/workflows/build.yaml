@@ -48,8 +48,15 @@ jobs:
 
       - name: Build images
         run: |
-          go build -o bin/proxmox-csi-controller ./cmd/controller && \
-          go build -o bin/proxmox-csi-node ./cmd/node
+          go build -ldflags="-w -s" -o bin/proxmox-csi-controller ./cmd/controller
+          go build -ldflags="-w -s" -o bin/proxmox-csi-node ./cmd/node
+          
+          upx --best --lzma bin/proxmox-csi-controller
+          upx --best --lzma bin/proxmox-csi-node
+          
+          mv bin/proxmox-csi-controller.upx bin/proxmox-csi-controller
+          mv bin/proxmox-csi-node.upx bin/proxmox-csi-node
+
         env:
           CGO_ENABLED: "0"
 
