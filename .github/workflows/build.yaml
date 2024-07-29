@@ -37,6 +37,7 @@ jobs:
           images: ghcr.io/iaa-inc/proxmox-csi-node
           tags: |
             type=sha,format=short,prefix=
+            type=edge,enable=true,priority=700,prefix=,suffix=,branch=$repo.default_branch
 
       - name: Extract controller container metadata
         id: meta-controller
@@ -45,6 +46,7 @@ jobs:
           images: ghcr.io/iaa-inc/proxmox-csi-controller
           tags: |
             type=sha,format=short,prefix=
+            type=edge,enable=true,priority=700,prefix=,suffix=,branch=$repo.default_branch
 
       - name: Build images
         run: |
